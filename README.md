@@ -1,5 +1,7 @@
 # CrashDog
 
+<img src="assets/crashdog-mascot.jpg" alt="CrashDog — a large red dog watching over a server farm" width="180" align="right">
+
 Lightweight crash-forensics daemon for headless Debian servers. CrashDog writes frequent, fsynced, human-readable snapshots so you can see what the system was doing before an unlogged hard reset.
 
 ## Why CrashDog exists
