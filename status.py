@@ -199,6 +199,8 @@ def show_status(config: dict[str, Any] | None = None) -> int:
             print(f"Top MEM:        {snapshot['top_mem']}")
         if snapshot.get("psi"):
             print(f"PSI:            {snapshot['psi']}")
+        if snapshot.get("pwr"):
+            print(f"Power:          {snapshot['pwr']}")
     else:
         print("(no snapshot yet)")
     print()

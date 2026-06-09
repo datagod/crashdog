@@ -25,6 +25,7 @@ from collectors import (
     collect_pressure,
     collect_processes,
     collect_system,
+    PowerTracker,
 )
 
 DEFAULT_CONFIG = Path(__file__).resolve().parent / "crashdog.default.yaml"
@@ -46,10 +47,17 @@ class CrashDog:
             "dmesg": bool(config.get("collectors", {}).get("dmesg", True)),
             "processes": bool(config.get("collectors", {}).get("processes", True)),
             "pressure": bool(config.get("collectors", {}).get("pressure", True)),
+            "power": bool(config.get("collectors", {}).get("power", True)),
         }
         self.persist_dmesg = bool(forensics_cfg.get("persist_dmesg", True))
         self.save_forensics = bool(forensics_cfg.get("save_on_crash", True))
         self.dmesg = DmesgTracker()
+        power_cfg = config.get("power", {})
+        self.power = PowerTracker(
+            rapl=bool(power_cfg.get("rapl", True)),
+            nvidia=bool(power_cfg.get("nvidia", True)),
+            nvme=bool(power_cfg.get("nvme", True)),
+        )
         self.persister = RingPersister(config)
         self.forensics = ForensicsDumper(config)
         self._running = True
@@ -114,6 +122,7 @@ class CrashDog:
             ("mem", "mem"),
             ("swap", "swap"),
             ("psi", "psi"),
+            ("pwr", "pwr"),
             ("gpu", "gpu"),
             ("docker_up", "docker_up"),
             ("docker_exit", "docker_exit"),
@@ -242,6 +251,8 @@ class CrashDog:
             fields.update(self.dmesg.collect())
         if self.enabled["gpu"]:
             fields.update(collect_gpu())
+        if self.enabled["power"]:
+            fields.update(self.power.collect())
         if self.enabled["docker"]:
             fields.update(collect_docker())
         return fields
@@ -307,6 +318,7 @@ class CrashDog:
                     "last_load": fields.get("load"),
                     "last_mem": fields.get("mem"),
                     "last_swap": fields.get("swap"),
+                    "last_pwr": fields.get("pwr"),
                 }
             )
             self._save_state(state)

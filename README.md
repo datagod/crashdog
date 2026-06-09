@@ -27,6 +27,7 @@ CrashDog fills the gap between **journald** (often incomplete on power loss) and
 Every 60 seconds (configurable):
 
 - uptime, load, memory, swap
+- CPU package power (RAPL), NVIDIA GPU draw, NVMe when available
 - top CPU and memory processes
 - new dmesg errors/warnings since last tick
 - NVIDIA GPU temp/memory/utilization (if present)
@@ -99,7 +100,7 @@ collectors:
 ## Log format
 
 ```
-2026-06-08T10:16:45-04:00 SNAPSHOT uptime=1d3h37m load=1.2/0.9/0.8 mem=5.6/47G swap=0.0/23G gpu=gpu0=44C/3260MiB/0% docker_up=9 docker_exit=2 top=frigate,immich dmesg_new=0
+2026-06-08T10:16:45-04:00 SNAPSHOT uptime=1d3h37m load=1.2/0.9/0.8 mem=5.6/47G swap=0.0/23G psi=cpu:0.00,mem:0.00 pwr=cpu:42W,gpu0:187W,gpu1:45W,sum:274W gpu=gpu0=44C/3260MiB/0% docker_up=9 docker_exit=2 top=frigate,immich dmesg_new=0
 2026-06-08T10:43:22-04:00 CRASH_GAP prev_boot=4b6949bc... new_boot=560a1f58... last_snapshot=2026-06-08T10:16:45-04:00 gap_est=26m atop_hint="atop -r /var/log/atop/atop_20260608 -b 1016"
 ```
 
