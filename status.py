@@ -8,13 +8,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from banner import banner_text
+from banner import banner_text, subtitle_ansi
 from collectors import collect_system
 
 # ANSI colors
 RST = "\033[0m"
 DIM = "\033[2m"
-CYAN = "\033[36m"
 
 
 def _load_config_data() -> tuple[dict[str, Any], Path]:
@@ -97,7 +96,7 @@ def _print_header() -> None:
     print(banner)
     subtitle = "crash forensics · headless watchdog"
     if use_color:
-        print(f"{DIM}{CYAN}{subtitle}{RST}")
+        print(f"{DIM}{subtitle_ansi()}{subtitle}{RST}")
         print(f"{DIM}{'─' * 60}{RST}")
     else:
         print(subtitle)

@@ -1,4 +1,4 @@
-"""CrashDog banner rendering — gtop-style block art with per-line red gradient."""
+"""CrashDog banner rendering — gtop-style block art with per-line blue gradient."""
 
 from __future__ import annotations
 
@@ -9,31 +9,31 @@ from typing import Iterable
 RST = "\033[0m"
 BOLD = "\033[1m"
 
-# gtop Banner_src red gradient (#E62525 bright → darker)
-GTOP_RED_GRADIENT = [
-    "#E62525",
-    "#CD2121",
-    "#B31D1D",
-    "#9A1919",
-    "#801414",
-    "#6E1212",
-    "#5C1010",
-    "#4A0E0E",
+# Royal blue → dark navy (16 shades; low green keeps it blue, not cyan)
+BANNER_BLUE_GRADIENT = [
+    "#1E45FF",
+    "#1C41F2",
+    "#1B3EE5",
+    "#1A3BD9",
+    "#1838CC",
+    "#1735C0",
+    "#1632B3",
+    "#142FA6",
+    "#132B9A",
+    "#12288D",
+    "#102581",
+    "#0F2274",
+    "#0E1F67",
+    "#0C1C5B",
+    "#0B194E",
+    "#0A1642",
 ]
+
+GRADIENT_START = (0x1E, 0x45, 0xFF)
+GRADIENT_END = (0x0A, 0x16, 0x42)
 
 # Filled block glyphs in toilet mono12 (and gtop █)
 SOLID_GLYPHS = frozenset("█▄▀▐▌■▓▒░")
-
-
-def _truecolor_to_256(red: int, green: int, blue: int) -> int:
-    if red == green == blue:
-        return 232 + round(red / 10) if red > 7 else round(red / 10)
-    return (
-        16
-        + 36 * round(red / 51)
-        + 6 * round(green / 51)
-        + round(blue / 51)
-    )
 
 
 def _hex_to_ansi(hex_color: str) -> str:
@@ -43,27 +43,30 @@ def _hex_to_ansi(hex_color: str) -> str:
     red = int(value[0:2], 16)
     green = int(value[2:4], 16)
     blue = int(value[4:6], 16)
-    code = _truecolor_to_256(red, green, blue)
-    return f"\033[38;5;{code}m"
+    return f"\033[38;2;{red};{green};{blue}m"
 
 
 def _gray_ansi(level: int) -> str:
     level = max(0, min(255, level))
-    code = _truecolor_to_256(level, level, level)
-    return f"\033[38;5;{code}m"
+    return f"\033[38;2;{level};{level};{level}m"
 
 
 def _gradient_hex(line_count: int) -> list[str]:
-    if line_count <= len(GTOP_RED_GRADIENT):
-        return GTOP_RED_GRADIENT[:line_count]
+    palette = BANNER_BLUE_GRADIENT
+    if line_count <= len(palette):
+        if line_count == 1:
+            return [palette[0]]
+        indices = [
+            round(index * (len(palette) - 1) / (line_count - 1))
+            for index in range(line_count)
+        ]
+        return [palette[index] for index in indices]
     out: list[str] = []
     for index in range(line_count):
         ratio = index / max(line_count - 1, 1)
-        start = (0xE6, 0x25, 0x25)
-        end = (0x4A, 0x0E, 0x0E)
-        red = int(start[0] + (end[0] - start[0]) * ratio)
-        green = int(start[1] + (end[1] - start[1]) * ratio)
-        blue = int(start[2] + (end[2] - start[2]) * ratio)
+        red = int(GRADIENT_START[0] + (GRADIENT_END[0] - GRADIENT_START[0]) * ratio)
+        green = int(GRADIENT_START[1] + (GRADIENT_END[1] - GRADIENT_START[1]) * ratio)
+        blue = int(GRADIENT_START[2] + (GRADIENT_END[2] - GRADIENT_START[2]) * ratio)
         out.append(f"#{red:02X}{green:02X}{blue:02X}")
     return out
 
@@ -89,19 +92,21 @@ def _toilet_lines(text: str = "CrashDog") -> list[str] | None:
 def _banner_src() -> list[tuple[str, str]]:
     lines = _toilet_lines()
     if not lines:
-        return [
-            ("#E62525", "  ____                     ____            "),
-            ("#CD2121", " / ___| __ _ _ __ ___  ___|  _ \\  ___   __ "),
-            ("#B31D1D", "| |   / _` | '__/ _ \\/ _ \\ | | |/ _ \\ / _|"),
-            ("#9A1919", "| |__| (_| | | |  __/ (_) | |_| | (_) | (_|"),
-            ("#801414", " \\____\\__,_|_|  \\___|\\___/|____/ \\___/ \\__|"),
+        fallback = [
+            "  ____                     ____            ",
+            " / ___| __ _ _ __ ___  ___|  _ \\  ___   __ ",
+            "| |   / _` | '__/ _ \\/ _ \\ | | |/ _ \\ / _|",
+            "| |__| (_| | | |  __/ (_) | |_| | (_) | (_|",
+            " \\____\\__,_|_|  \\___|\\___/|____/ \\___/ \\__|",
         ]
+        colors = _gradient_hex(len(fallback))
+        return list(zip(colors, fallback, strict=False))
     colors = _gradient_hex(len(lines))
     return list(zip(colors, lines, strict=False))
 
 
 def _render_line(hex_fg: str, art: str, line_index: int) -> str:
-    """Render one banner line gtop-style: solids in red, outlines in gray."""
+    """Render one banner line gtop-style: solids in blue, outlines in gray."""
     fg = _hex_to_ansi(hex_fg)
     gray = _gray_ansi(120 - line_index * 12)
     out: list[str] = []
@@ -127,6 +132,11 @@ def _render_line(hex_fg: str, art: str, line_index: int) -> str:
 
     emit(RST, "")
     return "".join(out)
+
+
+def subtitle_ansi() -> str:
+    """Mid-gradient blue for subtitles and secondary text."""
+    return _hex_to_ansi("#1632B3")
 
 
 def banner_text(use_color: bool = True) -> str:
