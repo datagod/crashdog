@@ -1,0 +1,25 @@
+log_dir: /var/log/crashdog
+state_file: /var/lib/crashdog/state.json
+last_snapshot_file: /var/log/crashdog/last-snapshot.txt
+last_state_file: /var/log/crashdog/last-state.json
+dmesg_ring_file: /var/log/crashdog/dmesg-ring.txt
+dmesg_tail_file: /var/log/crashdog/dmesg-tail.txt
+interval_seconds: 60
+top_processes: 5
+keep_days: 14
+
+collectors:
+  processes: true
+  dmesg: true
+  gpu: true
+  docker: true
+  pressure: true
+
+forensics:
+  dir: /var/log/crashdog/forensics
+  journal_lines: 200
+  kernel_journal_lines: 100
+  dmesg_levels: err,warn,crit,alert,emerg
+  dmesg_tail_lines: 400
+  save_on_crash: true
+  persist_dmesg: true
